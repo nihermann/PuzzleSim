@@ -1,0 +1,3 @@
+[submodule "PuzzleSim-demo-data"]
+	path = PuzzleSim-demo-data
+	url = https://github.com/nihermann/PuzzleSim-demo-data.git
