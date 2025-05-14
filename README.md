@@ -25,7 +25,7 @@ git submodule update --init --recursive
 If you find this work useful, please consider citing:
 ```bibtex
 @misc{hermann2024puzzlesim,
-      title={Puzzle Similarity: A Perceptually-guided No-Reference Metric for Artifact Detection in 3D Scene Reconstructions},
+      title={Puzzle Similarity: A Perceptually-guided Cross-Reference Metric for Artifact Detection in 3D Scene Reconstructions},
       author={Nicolai Hermann and Jorge Condor and Piotr Didyk},
       year={2024},
       eprint={2411.17489},
