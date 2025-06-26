@@ -3,7 +3,7 @@
 -----
 
 by Nicolai Hermann, Jorge Condor, and Piotr Didyk  
-[[Project page](https://nihermann.github.io/puzzlesim/index.html)] [[arXiv](https://arxiv.org/abs/2411.17489)]
+[[Project Page](https://nihermann.github.io/puzzlesim/index.html)] [[Dataset](https://huggingface.co/datasets/nihermann/annotated-3DGS-artifacts)] [[arXiv](https://arxiv.org/abs/2411.17489)]
 
 This repository contains the implementation of the Cross-Reference metric PuzzleSim and a dedicated demo for the paper "Puzzle Similarity: A Perceptually-guided Cross-Reference Metric for Artifact Detection in 3D Scene Reconstructions".
 
