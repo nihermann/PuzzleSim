@@ -5,7 +5,7 @@
 by Nicolai Hermann, Jorge Condor, and Piotr Didyk  
 [[Project page](https://nihermann.github.io/puzzlesim/index.html)] [[arXiv](https://arxiv.org/abs/2411.17489)]
 
-This repository contains the implementation of the No-Reference metric PuzzleSim and a dedicated demo for the paper "Puzzle Similarity: A Perceptually-guided No-Reference Metric for Artifact Detection in 3D Scene Reconstructions".
+This repository contains the implementation of the Cross-Reference metric PuzzleSim and a dedicated demo for the paper "Puzzle Similarity: A Perceptually-guided Cross-Reference Metric for Artifact Detection in 3D Scene Reconstructions".
 
 ### Requirements
 ```shell
