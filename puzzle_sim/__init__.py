@@ -29,6 +29,7 @@ from typing import List, NamedTuple, Optional, Tuple, Union, Dict
 
 import torch
 from torch import Tensor, nn
+import torch.functional as F
 from typing_extensions import Literal
 
 from torchmetrics.utilities.imports import _TORCHVISION_AVAILABLE, _TORCHVISION_GREATER_EQUAL_0_13
@@ -318,7 +319,7 @@ class _LPIPS(nn.Module):
             self.chns = [64, 128, 256, 384, 384, 512, 512]
         self.L = len(self.chns)
 
-        self.net = net_type(pretrained=not self.pnet_rand, requires_grad=self.pnet_tune)
+        self.net: Union[Vgg16, Alexnet, SqueezeNet] = net_type(pretrained=not self.pnet_rand, requires_grad=self.pnet_tune)
 
         self.lin0 = NetLinLayer(self.chns[0], use_dropout=use_dropout)
         self.lin1 = NetLinLayer(self.chns[1], use_dropout=use_dropout)
@@ -460,6 +461,59 @@ def learned_perceptual_image_patch_similarity(
     return loss
 
 
+def find_best_matching_piece(refs: torch.Tensor, img: torch.Tensor, stride: Optional[int] = 4, mem_save: bool = True) -> torch.Tensor:
+    if mem_save and stride is None:
+        raise ValueError("stride must not be none when mem_save=True.")
+
+    if img.ndim == 3:
+        img = img.unsqueeze(dim=0)
+
+    refs = _normalize_tensor(refs)
+    img = _normalize_tensor(img).squeeze()
+
+    if mem_save:
+        N, C, H, W = refs.shape
+
+        candidates = []
+        # factor over h, the dimension that you max over
+        for h in range(0, H, stride):
+            sim = torch.einsum('cHW,ncwh->nHWwh', img, refs[:, :, h:h + stride, :])
+            c_WH = (
+                sim
+                .reshape(N, H * W, -1)  # what was rows in sim is now last dimension
+                .max(dim=-1)  # distribute max over ref.W
+                .values  # get max values instead of indices
+                .max(dim=0)  # distribute max over ref.N
+                .values  # get max values instead of indices
+            )
+            candidates.append(c_WH)
+
+        sim_map = (
+            torch.stack(candidates, dim=0)
+            .max(dim=0)  # distribute max over ref.H
+            .values
+            .view(H, W)  # reshape to spatial map
+        )
+    else:
+        # flatten spatial dimensions
+        h, w = img.shape[1:]
+        flat_img = img.flatten(1, 2)
+        flat_ref = refs.flatten(2, 3)
+
+        # compute cosine similarity through outer product
+        # [Ground Truth] x [Test]^T -> [N, H*W, H*W]
+        # [N, C, H*W] x [C, H*W] -> [N, H*W, H*W]
+        sim = torch.einsum('ncx,cy->nxy', flat_ref, flat_img)
+        max_sim = sim.max(dim=1)[0]
+
+        sim_map = (
+            max_sim
+            .unflatten(1, (h, w))
+            .max(dim=0)[0]
+        )
+
+    return sim_map
+
 class PuzzleSim(_NoTrainLpips):
     def __init__(self, reference: Tensor, net_type: Literal["alex", "vgg", "squeeze"] = "squeeze", resize: Optional[Tuple[int, int]]=None) -> None:
         """
@@ -494,9 +548,9 @@ class PuzzleSim(_NoTrainLpips):
 
         outs = self.net.forward(in0_input)
 
-        feats = {}
-        for kk in range(self.L):
-            feats[kk] = _normalize_tensor(outs[kk])
+        feats: Dict[int, torch.Tensor] = {}
+        for l in range(self.L):
+            feats[l] = outs[l]
 
         return feats
 
@@ -524,48 +578,7 @@ class PuzzleSim(_NoTrainLpips):
 
         sims = []
         for i, layer in enumerate(layers):
-            if mem_save:
-                refs = self.reference_feats[layer]
-                img_ = feats[layer].squeeze()
-                N, C, H, W = refs.shape
-
-                candidates = []
-                # factor over h, the dimension that you max over
-                for h in range(0, H, stride):
-                    sim = torch.einsum('cHW,ncwh->nHWwh', img_, refs[:, :, h:h+stride, :])
-                    c_WH = (
-                        sim
-                        .reshape(N, H * W, -1)  # what was rows in sim is now last dimension
-                        .max(dim=-1)  # distribute max over ref.W
-                        .values  # get max values instead of indices
-                        .max(dim=0)  # distribute max over ref.N
-                        .values  # get max values instead of indices
-                    )
-                    candidates.append(c_WH)
-
-                sim_map = (
-                    torch.stack(candidates, dim=0)
-                    .max(dim=0)  # distribute max over ref.H
-                    .values
-                    .view(H, W)  # reshape to spatial map
-                )
-            else:
-                # flatten spatial dimensions
-                flat_img = feats[layer].flatten(2, 3).squeeze()
-                flat_ref = self.reference_feats[layer].flatten(2, 3).squeeze()
-
-                # compute cosine similarity through outer product
-                # [Ground Truth] x [Reference]^T -> [N, H*W, H*W]
-                # [N, C, H*W] x [C, H*W] -> [N, H*W, H*W]
-                sim = torch.einsum('ncx,cy->nxy', flat_ref, flat_img)
-                max_sim = sim.max(dim=1)[0]
-
-                h, w = feats[layer].shape[2:]
-                sim_map = (
-                    max_sim
-                    .unflatten(1, (h, w))
-                    .max(dim=0)[0]
-                )
+            sim_map = find_best_matching_piece(self.reference_feats[layer], feats[layer].squeeze(), stride, mem_save)
 
             if weights is not None:
                 sim_map = sim_map * weights[i]
