@@ -6,7 +6,7 @@ from puzzle_sim import PuzzleSim, find_best_matching_piece
 
 
 device = 'gpu' if torch.cuda.is_available() else 'cpu'
-device = 'mps' if torch.has_mps else device
+device = 'mps' if torch.backends.mps.is_built() else device
 
 
 @pytest.mark.parametrize("mem_save", [True, False])
