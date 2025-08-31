@@ -15,14 +15,14 @@ by Nicolai Hermann, Jorge Condor, and Piotr Didyk
   <img src="https://img.shields.io/badge/license-Apache 2.0-green" alt="License">
 </p>
 
-This repository contains the implementation of the No-Reference metric PuzzleSim and a dedicated demo for the paper "Puzzle Similarity: A Perceptually-guided No-Reference Metric for Artifact Detection in 3D Scene Reconstructions".
+This repository contains the implementation of the cross-reference metric PuzzleSim and a dedicated demo for the paper "Puzzle Similarity: A Perceptually-guided Cross-Reference Metric for Artifact Detection in 3D Scene Reconstructions".
 
 ### Requirements
 ```shell
 pip install -r requirements.txt
 ```
 ### Usage and Demo
-Please find the demo in `demo.ipynb` to see how to run the metric on some example sets. In order to run the demo you need to pull the data from another repository. Do this by either cloning the repository using
+Please find the demo in `demo.ipynb` to see how to run the metric on some example sets. In order to run the demo, you need to pull the data from another repository. Do this by either cloning the repository using
 ```shell
 git clone https://github.com/nihermann/PuzzleSim.git --recursive
 ```
