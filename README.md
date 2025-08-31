@@ -15,7 +15,7 @@ by Nicolai Hermann, Jorge Condor, and Piotr Didyk
   <img src="https://img.shields.io/badge/license-Apache 2.0-green" alt="License">
 </p>
 
-This repository contains the implementation of the cross-reference metric PuzzleSim and a dedicated demo for the paper "Puzzle Similarity: A Perceptually-guided Cross-Reference Metric for Artifact Detection in 3D Scene Reconstructions".
+This repository contains the implementation of the cross-reference metric PuzzleSim and a dedicated demo for the paper "Puzzle Similarity: A Perceptually-Guided Cross-Reference Metric for Artifact Detection in 3D Scene Reconstructions".
 
 ### Requirements
 ```shell
