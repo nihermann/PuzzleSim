@@ -14,7 +14,7 @@ class FeatureExtractor(ABC):
         pass
 
 
-def get_feature_extractor(net_type: Union[FeatureExtractor, Literal["alex", "vgg", "squeeze"]] = "alex", **kwargs) -> FeatureExtractor:
+def get_feature_extractor(net_type: Union[FeatureExtractor, Literal["alex", "vgg", "squeeze"]], **kwargs) -> FeatureExtractor:
     if isinstance(net_type, FeatureExtractor):
         return net_type
 
