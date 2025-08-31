@@ -1,11 +1,14 @@
 # <img src="https://www.svgrepo.com/show/510149/puzzle-piece.svg" width="22"/> Puzzle Similarity
 
 -----
-
 by Nicolai Hermann, Jorge Condor, and Piotr Didyk  
-[[Project Page](https://nihermann.github.io/puzzlesim/index.html)] [[Dataset](https://huggingface.co/datasets/nihermann/annotated-3DGS-artifacts)] [[arXiv](https://arxiv.org/abs/2411.17489)]
+<p align="center">
+  <img src="https://github.com/nihermann/PuzzleSim/actions/workflows/test.yml/badge.svg" alt="test results">
+  <img src="https://img.shields.io/badge/license-Apache 2.0-green" alt="License">
+</p>
+[[Project page](https://nihermann.github.io/puzzlesim/index.html)] [[arXiv](https://arxiv.org/abs/2411.17489)]
 
-This repository contains the implementation of the Cross-Reference metric PuzzleSim and a dedicated demo for the ICCV 2025 paper "Puzzle Similarity: A Perceptually-Guided Cross-Reference Metric for Artifact Detection in 3D Scene Reconstructions".
+This repository contains the implementation of the No-Reference metric PuzzleSim and a dedicated demo for the paper "Puzzle Similarity: A Perceptually-guided No-Reference Metric for Artifact Detection in 3D Scene Reconstructions".
 
 ### Requirements
 ```shell
