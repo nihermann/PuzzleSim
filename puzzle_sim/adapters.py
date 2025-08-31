@@ -31,7 +31,6 @@ class AlexVGGSqueezeAdapter(nn.Module, FeatureExtractor):
             self,
             net: Literal["alex", "vgg", "squeeze"] = "alex",
             spatial: bool = False,
-            pnet_rand: bool = False,
             pnet_tune: bool = False,
             use_dropout: bool = False,
             resize: Optional[Union[int, Tuple[int]]] = None,
@@ -39,22 +38,16 @@ class AlexVGGSqueezeAdapter(nn.Module, FeatureExtractor):
         """Initializes a perceptual loss torch.nn.Module.
 
         Args:
-            pretrained: This flag controls the linear layers should be pretrained version or random
             net: Indicate backbone to use, choose between ['alex','vgg','squeeze']
             spatial: If input should be spatial averaged
-            pnet_rand: If backbone should be random or use imagenet pre-trained weights
             pnet_tune: If backprop should be enabled for both backbone and linear layers
             use_dropout: If dropout layers should be added
-            model_path: Model path to load pretained models from
-            eval_mode: If network should be in evaluation mode
             resize: If input should be resized to this size
-
         """
         super().__init__()
 
         self.pnet_type = net
         self.pnet_tune = pnet_tune
-        self.pnet_rand = pnet_rand
         self.spatial = spatial
         self.resize = resize
         self.scaling_layer = ScalingLayer()
@@ -72,7 +65,7 @@ class AlexVGGSqueezeAdapter(nn.Module, FeatureExtractor):
             raise ValueError(f"Net type {self.pnet_type} unknown.")
         self.L = len(self.chns)
 
-        self.net: Union[Vgg16, Alexnet, SqueezeNet] = net_type(pretrained=not self.pnet_rand, requires_grad=self.pnet_tune)
+        self.net: Union[Vgg16, Alexnet, SqueezeNet] = net_type(requires_grad=self.pnet_tune)
 
         self.lin0 = NetLinLayer(self.chns[0], use_dropout=use_dropout)
         self.lin1 = NetLinLayer(self.chns[1], use_dropout=use_dropout)
