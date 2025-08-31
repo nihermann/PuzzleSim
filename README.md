@@ -11,6 +11,7 @@ by Nicolai Hermann, Jorge Condor, and Piotr Didyk
   <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/file-circle-plus.svg" width=13 height=13> <a target="_blank" href="puzzlesim/data/Puzzle_Similarity_Supplemental.pdf">Supplemental</a>
 </p>
 <p align="left">
+  <a target="_blank" href="https://arxiv.org/abs/2411.17489"><img src=https://img.shields.io/badge/arXiv-2411.17489-b31b1b.svg></a>
   <img src="https://github.com/nihermann/PuzzleSim/actions/workflows/tests.yml/badge.svg" alt="test results">
   <img src="https://img.shields.io/badge/license-Apache 2.0-green" alt="License">
 </p>
