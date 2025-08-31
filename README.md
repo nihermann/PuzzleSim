@@ -3,7 +3,7 @@
 -----
 by Nicolai Hermann, Jorge Condor, and Piotr Didyk  
 <p align="center">
-  <img src="https://github.com/nihermann/PuzzleSim/actions/workflows/test.yml/badge.svg" alt="test results">
+  <img src="https://github.com/nihermann/PuzzleSim/actions/workflows/tests.yml/badge.svg" alt="test results">
   <img src="https://img.shields.io/badge/license-Apache 2.0-green" alt="License">
 </p>
 [[Project page](https://nihermann.github.io/puzzlesim/index.html)] [[arXiv](https://arxiv.org/abs/2411.17489)]
