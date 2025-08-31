@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Union, Sequence, Literal, Optional, Tuple
+from typing import Dict, Union, Sequence, Literal, Optional, Tuple, Any
 
+import torch
 from torch import Tensor, nn
 
 from puzzle_sim.models import AlexNet, Vgg16, SqueezeNet, ScalingLayer
@@ -12,7 +13,7 @@ class FeatureExtractor(ABC):
         pass
 
 
-def get_feature_extractor(net_type: Union[FeatureExtractor, Literal["alex", "vgg", "squeeze"]], **kwargs) -> FeatureExtractor:
+def get_feature_extractor(net_type: Union[FeatureExtractor, Literal["alex", "vgg", "squeeze"]], **kwargs: Dict[str, Any]) -> FeatureExtractor:
     if isinstance(net_type, FeatureExtractor):
         return net_type
 
@@ -27,8 +28,8 @@ def get_feature_extractor(net_type: Union[FeatureExtractor, Literal["alex", "vgg
 class AlexVGGSqueezeAdapter(nn.Module, FeatureExtractor):
     def __init__(
             self,
-            net_type: Literal["alex", "vgg", "squeeze"] = "alex",
-            resize: Optional[Union[int, Tuple[int]]] = None,
+            net_type: Literal["alex", "vgg", "squeeze"],
+            resize: Optional[Union[int, Tuple[int, int]]] = None,
     ) -> None:
         """Initializes a perceptual loss torch.nn.Module.
 
@@ -47,7 +48,7 @@ class AlexVGGSqueezeAdapter(nn.Module, FeatureExtractor):
             n = list(range(n))
 
         if normalize:  # turn on this flag if input is [0,1] so it can be adjusted to [-1, +1]
-            img = 2 * img - 1
+            img = 2. * img - 1.
 
         # normalize input
         in0_input = self.scaling_layer(img)

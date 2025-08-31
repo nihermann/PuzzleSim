@@ -16,7 +16,7 @@ def load_images(dataset: str, device: str) -> Tuple[torch.Tensor, torch.Tensor, 
     return priors, test_images, names
 
 
-def _read_images(directory, device="cuda:0") -> Tuple[torch.Tensor, List[str]]:
+def _read_images(directory: Path, device="cuda:0") -> Tuple[torch.Tensor, List[str]]:
     images = []
     image_names = []
     for fname in os.listdir(directory):

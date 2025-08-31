@@ -1,4 +1,4 @@
-from typing import Sequence, Dict
+from typing import Sequence, Dict, List, Union, Any
 
 import torch
 from torch import Tensor, nn
@@ -12,7 +12,7 @@ class ConvBase(torch.nn.Module):
         super().__init__()
         self.slices = nn.ModuleList()
 
-    def build(self, feature_per_block: Sequence[Sequence[int]], pretrained_features: nn.Module) -> None:
+    def build(self, feature_per_block: Sequence[Sequence[int]], pretrained_features: nn.Sequential) -> None:
         """Build model from feature ranges."""
         for feature_range in feature_per_block:
             seq = torch.nn.Sequential()
@@ -40,7 +40,7 @@ class SqueezeNet(ConvBase):
 
     def __init__(self) -> None:
         super().__init__()
-        pretrained_features = tv.squeezenet1_1(weights=tv.SqueezeNet1_1_Weights.IMAGENET1K_V1).features
+        pretrained_features: nn.Sequential = tv.squeezenet1_1(weights=tv.SqueezeNet1_1_Weights.IMAGENET1K_V1).features
 
         feature_per_block = [range(2), range(2, 5), range(5, 8), range(8, 10), range(10, 11), range(11, 12), range(12, 13)]
 
@@ -79,6 +79,6 @@ class ScalingLayer(nn.Module):
         self.register_buffer("shift", torch.Tensor([-0.030, -0.088, -0.188])[None, :, None, None], persistent=False)
         self.register_buffer("scale", torch.Tensor([0.458, 0.448, 0.450])[None, :, None, None], persistent=False)
 
-    def forward(self, inp: torch.Tensor) -> torch.Tensor:
+    def forward(self, inp: Tensor) -> Tensor:
         """Process input."""
         return (inp - self.shift) / self.scale

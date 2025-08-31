@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Literal
+from typing import List, Optional, Tuple, Literal, Sequence, Union
 
 import torch
 from torch import Tensor, nn
@@ -20,9 +20,6 @@ def find_best_matching_piece(refs: Tensor, img: Tensor, stride: Optional[int] = 
     Returns:
         Tensor: the similarity map of the input image to the reference distribution of shape (H, W).
     """
-    if mem_save and stride is None:
-        raise ValueError("stride must not be none when mem_save=True.")
-
     if img.ndim == 3:
         img = img.unsqueeze(dim=0)
 
@@ -30,6 +27,9 @@ def find_best_matching_piece(refs: Tensor, img: Tensor, stride: Optional[int] = 
     img = F.normalize(img, p=2, dim=1).squeeze()
 
     if mem_save:
+        if not isinstance(stride, int):
+            raise ValueError(f"stride must be of type int when mem_save=True. Found {type(stride)}")
+
         N, C, H, W = refs.shape
 
         candidates = []
@@ -89,7 +89,7 @@ class PuzzleSim(nn.Module):
         self.reference_feats = None
 
 
-    def forward(self, img: Tensor, layers: List[int] = (2, 3, 4), normalize: bool = True, reduction: Literal['mean', 'sum'] = 'sum', weights: List[float] = (0.67, 0.2, 0.13), mem_save: bool = True, stride=4) -> Tensor:
+    def forward(self, img: Tensor, layers: Sequence[int] = (2, 3, 4), normalize: bool = True, reduction: Literal['mean', 'sum'] = 'sum', weights: Optional[Sequence[float]] = (0.67, 0.2, 0.13), mem_save: bool = True, stride=4) -> Tensor:
         """
         Compute the PuzzleSim metric for an input image.
         Args:
@@ -111,16 +111,19 @@ class PuzzleSim(nn.Module):
         if self.reference_feats is None or any(layer not in self.reference_feats for layer in layers):
             self.reference_feats = self.feature_extractor.compute_features(self.reference, layers, normalize)
 
-        sims = []
+        sims: List[Tensor] = []
         for i, layer in enumerate(layers):
-            sim_map = find_best_matching_piece(self.reference_feats[layer], feats[layer].squeeze(), stride, mem_save)
+            sim_map = find_best_matching_piece(self.reference_feats[layer], feats[layer], stride, mem_save)
 
             if weights is not None:
                 sim_map = sim_map * weights[i]
 
             sims.append(upsample(sim_map, out_hw=img.shape[-2:], align_corners=True).squeeze())
 
-        sim_summary: Tensor = sum(sims)  # type: ignore[assignment]
+        sim_summary = sims[0]
+        for sim in sims[1:]:
+            sim_summary += sim
+        # sim_summary: Tensor = sum(sims)
         if reduction == 'mean':
             return sim_summary / len(sims)
 

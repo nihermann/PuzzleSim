@@ -51,7 +51,7 @@ class TestPuzzleSim:
 
         assert torch.allclose(sims, torch.ones_like(sims))
 
-    def test_same_shape_in_out(self, net_type) -> None:
+    def test_same_shape_in_out(self, net_type: Literal['vgg', 'alex', 'squeeze']) -> None:
         priors = torch.rand(8, 3, 64, 64).to(device)
         test = priors[0]
 
