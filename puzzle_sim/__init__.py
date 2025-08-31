@@ -1,35 +1,8 @@
-# The authors of this paper have released the code under the Apache 2.0 open source license and extended the code to include the PuzzleSim metric.
-
-# Copyright The Lightning team.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-# Content copied from
-# https://github.com/richzhang/PerceptualSimilarity/blob/master/lpips/lpips.py
-# and
-# https://github.com/richzhang/PerceptualSimilarity/blob/master/lpips/pretrained_networks.py
-# and with adjustments from
-# https://github.com/richzhang/PerceptualSimilarity/pull/114/files
-# due to package no longer being maintained
-# Copyright (c) 2018, Richard Zhang, Phillip Isola, Alexei A. Efros, Eli Shechtman, Oliver Wang
-# All rights reserved.
-# License under BSD 2-clause
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Literal
 
 import torch
 from torch import Tensor, nn
 import torch.nn.functional as F
-from typing_extensions import Literal
 
 from puzzle_sim.adapters import FeatureExtractor, get_feature_extractor
 from puzzle_sim.helpers import upsample
