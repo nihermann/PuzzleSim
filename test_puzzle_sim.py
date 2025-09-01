@@ -1,13 +1,18 @@
-from typing import Literal
+import sys
+from typing import get_args
 
 import torch
 import pytest
-from puzzle_sim import PuzzleSim, find_best_matching_piece
+from puzzle_sim import PuzzleSim, find_best_matching_piece, NetType, VGGAlexSqueezeType, Dinov3Type
 
 
 device = 'gpu' if torch.cuda.is_available() else 'cpu'
 device = 'mps' if torch.backends.mps.is_built() else device
 
+def skip_dino_if_python_version_is_less_than_10(net_type: NetType) -> None:
+    is_dino = net_type in get_args(Dinov3Type)
+    if sys.version_info.minor < 10 and is_dino:
+        pytest.skip("Dinov3 code requires Python>=3.10")
 
 @pytest.mark.parametrize("mem_save", [True, False])
 class TestFindBestMatchingPiece:
@@ -39,25 +44,29 @@ class TestFindBestMatchingPiece:
         assert torch.allclose(sims, torch.ones_like(sims))
 
 
-@pytest.mark.parametrize("net_type", ["vgg", "alex", "squeeze"])
+@pytest.mark.parametrize("net_type", get_args(VGGAlexSqueezeType) + get_args(Dinov3Type))
 class TestPuzzleSim:
-    def test_same_input_yields_max_sim_in_puzzle_sim(self, net_type: Literal['vgg', 'alex', 'squeeze']) -> None:
+    def test_same_input_yields_max_sim_in_puzzle_sim(self, net_type: NetType) -> None:
+        skip_dino_if_python_version_is_less_than_10(net_type)
+
         priors = torch.rand(8, 3, 64, 64).to(device)
         test = priors[0]
 
         puzzle = PuzzleSim(priors, net_type=net_type)
 
-        sims = puzzle(test)
+        sims = puzzle(test, layers=(1, 2, 3))
 
         assert torch.allclose(sims, torch.ones_like(sims))
 
-    def test_same_shape_in_out(self, net_type: Literal['vgg', 'alex', 'squeeze']) -> None:
+    def test_same_shape_in_out(self, net_type: NetType) -> None:
+        skip_dino_if_python_version_is_less_than_10(net_type)
+
         priors = torch.rand(8, 3, 64, 64).to(device)
         test = priors[0]
 
         puzzle = PuzzleSim(priors, net_type=net_type)
 
-        sims = puzzle(test)
+        sims = puzzle(test, layers=(1, 2, 3))
 
         _, H, W = test.shape
 

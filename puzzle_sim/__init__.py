@@ -4,7 +4,7 @@ import torch
 from torch import Tensor, nn
 import torch.nn.functional as F
 
-from puzzle_sim.adapters import FeatureExtractor, get_feature_extractor
+from puzzle_sim.adapters import FeatureExtractor, get_feature_extractor, NetType, Dinov3Type, VGGAlexSqueezeType
 from puzzle_sim.helpers import upsample
 
 
@@ -73,7 +73,7 @@ def find_best_matching_piece(refs: Tensor, img: Tensor, stride: Optional[int] = 
     return sim_map
 
 class PuzzleSim(nn.Module):
-    def __init__(self, reference: Tensor, net_type: Literal["alex", "vgg", "squeeze"] = "squeeze", resize: Optional[Tuple[int, int]]=None) -> None:
+    def __init__(self, reference: Tensor, net_type: NetType = "squeeze", resize: Optional[Tuple[int, int]] = None) -> None:
         """
         Instantiates the PuzzleSim metric on a given reference distribution.
         Find the paper at https://arxiv.org/abs/2411.17489
