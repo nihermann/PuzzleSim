@@ -50,8 +50,8 @@ jobs:
           path: ${{ env.HF_HOME }}
           key: hf-cache-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}
 
-      - name: Login to Hugging Face (CLI)
-        run: hf auth login --token "$HUGGING_FACE_HUB_TOKEN"
+      - name: Verify HF login 
+        run: hf whoami
 
       - name: Run tests
         run: python -m pytest -q
