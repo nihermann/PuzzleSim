@@ -21,10 +21,8 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
     env:
-      # Expose only to this job. Define HF_TOKEN in your repo/org secrets.
       HUGGING_FACE_HUB_TOKEN: ${{ secrets.HUGGINFFACETOKEN }}
-      # Optional speed-ups:
-      HF_HOME: ${{ runner.temp }}/.cache/huggingface
+      HF_HOME: ~/.cache/huggingface
       HF_HUB_ENABLE_HF_TRANSFER: 1
 
     steps:
