@@ -21,7 +21,7 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
     env:
-      HUGGING_FACE_HUB_TOKEN: ${{ secrets.HUGGINFFACETOKEN }}
+      HF_TOKEN: ${{ secrets.HUGGINFFACETOKEN }}
       HF_HOME: ~/.cache/huggingface
       HF_HUB_ENABLE_HF_TRANSFER: 1
 
