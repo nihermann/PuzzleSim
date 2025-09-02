@@ -23,7 +23,7 @@ jobs:
 
     env:
       HF_TOKEN: ${{ secrets.HUGGINGFACETOKEN }}
-      HF_HOME: ${{ runner.HOME }}/.cache/huggingface
+      HF_HOME: ${{ GITHUB_WORKSPACE }}/.cache/huggingface
       HF_HUB_ENABLE_HF_TRANSFER: 1
 
     steps:
@@ -47,8 +47,6 @@ jobs:
 
       - name: Check if logged in to HF
         run: hf auth whoami
-        env:
-          HF_TOKEN: ${{ secrets.HUGGINGFACETOKEN }}
 
       - name: Cache HF models
         uses: actions/cache@v4
@@ -58,6 +56,3 @@ jobs:
 
       - name: Run tests
         run: python -m pytest -q
-        env:
-          HF_TOKEN: ${{ secrets.HUGGINGFACETOKEN }}
-          HF_HOME: ${{ env.HOME }}/.cache/huggingface
