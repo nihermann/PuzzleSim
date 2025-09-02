@@ -22,7 +22,7 @@ jobs:
 
     env:
       HF_TOKEN: ${{ secrets.HUGGINGFACETOKEN }}
-      HF_HOME: ~/.cache/huggingface
+      HF_HOME: ${{ env.HOME }}/.cache/huggingface
       HF_HUB_ENABLE_HF_TRANSFER: 1
 
     steps:
@@ -59,4 +59,4 @@ jobs:
         run: python -m pytest -q
         env:
           HF_TOKEN: ${{ secrets.HUGGINGFACETOKEN }}
-          HF_HOME: ~/.cache/huggingface
+          HF_HOME: ${{ env.HOME }}/.cache/huggingface
