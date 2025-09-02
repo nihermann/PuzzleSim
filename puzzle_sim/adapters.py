@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Union, Sequence, Literal, Optional, Tuple, Any, get_args
+import re
 
 import torch
 from torch import Tensor, nn
 from torchvision import transforms
+from transformers import AutoModel
 
 from puzzle_sim.models import AlexNet, Vgg16, SqueezeNet, ScalingLayer
 from puzzle_sim.helpers import resize_tensor, upsample
@@ -11,6 +13,78 @@ from puzzle_sim.helpers import resize_tensor, upsample
 VGGAlexSqueezeType = Literal['vgg', 'alex', 'squeeze']
 Dinov3Type = Literal['convnext_tiny', 'convnext_small', 'convnext_base', 'convnext_large', 'vits16', 'vits16plus', 'vitb16', 'vitl16']
 NetType = Union[VGGAlexSqueezeType, Dinov3Type]
+
+
+def map_hf_to_author(hf_sd: dict, author_model: nn.Module) -> dict:
+    rename_inside = {
+        "depthwise_conv": "dwconv",
+        "layer_norm": "norm",
+        "pointwise_conv1": "pwconv1",
+        "pointwise_conv2": "pwconv2",
+    }
+
+    mapped = {}
+
+    for k, v in hf_sd.items():
+        new_k = k
+
+        # 1) Downsample layers: stages.S.downsample_layers.K.(weight|bias)
+        m = re.match(r"^stages\.(\d+)\.downsample_layers\.(\d+)\.(.+)$", new_k)
+        if m:
+            s, kidx, tail = m.groups()
+            new_k = f"downsample_layers.{s}.{kidx}.{tail}"
+        else:
+            # 2) Block layers: stages.S.layers.B.*
+            new_k = re.sub(r"^stages\.(\d+)\.layers\.(\d+)\.", r"stages.\1.\2.", new_k)
+
+        # 3) Submodule renames inside blocks
+        parts = new_k.split(".")
+        parts = [rename_inside.get(p, p) for p in parts]
+        new_k = ".".join(parts)
+
+        # 4) Final LN at the top-level
+        if new_k.startswith("layer_norm."):
+            new_k = new_k.replace("layer_norm.", "norm.", 1)
+
+        mapped[new_k] = v
+
+    # 5) If author has norms.3.*, mirror top norm.* there (shape-checked)
+    author_sd = author_model.state_dict()
+    for suffix in ["weight", "bias"]:
+        src = f"norm.{suffix}"
+        dst = f"norms.3.{suffix}"
+        if src in mapped and dst in author_sd and author_sd[dst].shape == mapped[src].shape:
+            mapped[dst] = mapped[src].clone()
+
+    return mapped
+
+
+def safe_load(model: nn.Module, new_sd: dict, verbose: bool = False) -> None:
+    model_sd = model.state_dict()
+    loadable = {}
+    skipped = []
+    for k, v in new_sd.items():
+        if k in model_sd and model_sd[k].shape == v.shape:
+            loadable[k] = v
+        else:
+            skipped.append((k, v.shape, model_sd.get(k, None).shape if k in model_sd else None))
+    missing = sorted(set(model_sd.keys()) - set(loadable.keys()))
+    unexpected = sorted(set(new_sd.keys()) - set(model_sd.keys()))
+
+    if verbose:
+        msg = {
+            "num_loadable": len(loadable),
+            "num_missing_in_new": len(missing),
+            "num_unexpected_in_new": len(unexpected),
+            "some_missing": missing[:10],
+            "some_unexpected": unexpected[:10],
+            "some_skipped_shape_mismatch": skipped[:10],
+        }
+        print(msg)
+    assert len(missing) == 0, f"Missing keys in new state dict: {missing}"
+    assert len(unexpected) == 0, f"Unexpected keys in new state dict: {unexpected}"
+    assert len(skipped) == 0, f"Skipped keys due to shape mismatch: {skipped}"
+    model.load_state_dict(loadable, strict=False)
 
 
 class FeatureExtractor(ABC):
@@ -108,13 +182,23 @@ class DinoV3Adapter(nn.Module, FeatureExtractor):
     def __init__(self, net_type: Dinov3Type) -> None:
         super().__init__()
 
+        # instantiate model, bc weights can only be loaded via transformers or if downloaded manually
+        # we pull the full model class so we can use get_intermediate_layers
         self.model = torch.hub.load(
-            repo_or_dir="../dinov3",
+            repo_or_dir="facebookresearch/dinov3",
             model=f"dinov3_{net_type}",
-            source="local",
-            weights=f"puzzle_sim/dino_models/dinov3_{net_type}_pretrain_lvd1689m{'-8aa4cbdd' if net_type == 'vitl16' else ''}.pth"
+            source="github",
+            pretrained=False,
+            #weights=f"puzzle_sim/dino_models/dinov3_{net_type}_pretrain_lvd1689m{'-8aa4cbdd' if net_type == 'vitl16' else ''}.pth"
         )
-        print(f"Dinov3 {net_type} has n={self.model.n_blocks} blocks.")
+        # pull weights from huggingface model zoo
+        state_dict = AutoModel.from_pretrained(
+            f"facebook/dinov3-{net_type.replace('_', '-')}-pretrain-lvd1689m",
+            device_map="auto"
+        ).state_dict()
+
+        safe_load(self.model, map_hf_to_author(state_dict, self.model))
+
         self.transform = transforms.Normalize(
             mean=(0.485, 0.456, 0.406),
             std=(0.229, 0.224, 0.225),
@@ -131,7 +215,8 @@ class DinoV3Adapter(nn.Module, FeatureExtractor):
         if normalize:
             tensor = self.transform(tensor)
 
-        features = self.model.get_intermediate_layers(tensor, n=max(n)+1, reshape=True)
+        with torch.inference_mode():
+            features = self.model.get_intermediate_layers(tensor, n=max(n)+1, reshape=True)
 
         output: Dict[int, Tensor] = {}
         for i in n:
