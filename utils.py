@@ -41,16 +41,16 @@ def _read_images(directory: Path, device="cuda:0") -> Tuple[torch.Tensor, List[s
 
 @torch.no_grad()
 def plot_image_tensor(tensor: torch.Tensor) -> None:
-    tensor = tensor.squeeze().permute(1, 2, 0).cpu().numpy()
-    plt.imshow(tensor)
+    numpy = tensor.squeeze().permute(1, 2, 0).cpu().numpy()
+    plt.imshow(numpy)
     plt.axis("off")
     plt.show()
 
 
 @torch.no_grad()
 def plot_heatmap_tensor(tensor: torch.Tensor) -> None:
-    tensor = tensor.squeeze().cpu().numpy()
-    plt.imshow(tensor, cmap=cm.jet.reversed())
+    numpy = tensor.squeeze().cpu().numpy()
+    plt.imshow(numpy, cmap=cm.jet.reversed())
     plt.axis("off")
     plt.show()
 
@@ -58,11 +58,11 @@ def plot_heatmap_tensor(tensor: torch.Tensor) -> None:
 @torch.no_grad()
 def plot_image_tensor_row(tensor: torch.Tensor, titles: List[str]) -> None:
     assert tensor.ndim == 4, "Expected 4D tensor"
-    tensor = tensor.cpu().permute(0, 2, 3, 1).numpy()
-    N = tensor.shape[0]
+    numpy = tensor.cpu().permute(0, 2, 3, 1).numpy()
+    N = numpy.shape[0]
     fig, axs = plt.subplots(1, N, figsize=(N * 4, 4))
     for i, ax in enumerate(axs):
-        ax.imshow(tensor[i])
+        ax.imshow(numpy[i])
         ax.axis("off")
         ax.set_title(titles[i])
     plt.show()
