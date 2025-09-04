@@ -118,6 +118,10 @@ class DinoV3Adapter(nn.Module, FeatureExtractor):
     def __init__(self, dino_type: Dinov3Type) -> None:
         super().__init__()
 
+        # using torch.hub causes rate limit issues in some environments, which can be fixed by this workaround
+        # https://github.com/pytorch/pytorch/issues/61755#issuecomment-885801511
+        torch.hub._validate_not_a_forked_repo = lambda a, b, c: True
+
         # instantiate model, bc weights can only be loaded via transformers or if downloaded manually
         # we pull the full model class so we can use get_intermediate_layers
         self.model = torch.hub.load(

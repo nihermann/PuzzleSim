@@ -96,6 +96,10 @@ class TestPuzzleSim:
 def test_correct_state_dict_loaded(dino_type: Dinov3Type):
     refs = torch.rand(8, 3, 64, 64).to(device)
 
+    # using torch.hub causes rate limit issues in some environments, which can be fixed by this workaround
+    # https://github.com/pytorch/pytorch/issues/61755#issuecomment-885801511
+    torch.hub._validate_not_a_forked_repo = lambda a, b, c: True
+
     model = torch.hub.load(repo_or_dir="facebookresearch/dinov3", model=f"dinov3_{dino_type}",
         weights=f'puzzle_sim/dino_models/dinov3_{dino_type}_pretrain_lvd1689m{"-8aa4cbdd" if dino_type == "vitl16" else ""}.pth', ).to(
         device)
