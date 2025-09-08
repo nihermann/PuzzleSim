@@ -91,7 +91,7 @@ class TestPuzzleSim:
         assert torch.allclose(sims1, sims2)
 
 
-@pytest.mark.skipif(bool(os.environ.get("CI")), reason="Relies on local models so can't be run on CI")
+@pytest.mark.skipif(bool(os.environ.get("CI")) or not os.path.exists("puzzle_sim/dino_models/"), reason="Relies on local models so can't be run on CI")
 @pytest.mark.parametrize("dino_type", get_args(Dinov3Type))
 def test_correct_state_dict_loaded(dino_type: Dinov3Type):
     refs = torch.rand(8, 3, 64, 64).to(device)
