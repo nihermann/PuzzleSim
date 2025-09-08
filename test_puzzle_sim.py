@@ -9,7 +9,7 @@ from puzzle_sim import PuzzleSim, find_best_matching_piece, NetType, VGGAlexSque
 
 torch.manual_seed(0)
 
-device = 'gpu' if torch.cuda.is_available() else 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 device = 'mps' if torch.backends.mps.is_built() else device
 
 
