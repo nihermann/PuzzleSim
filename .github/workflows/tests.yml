@@ -45,14 +45,17 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-dev.txt
 
-      - name: Check if logged in to HF
-        run: hf auth whoami
-
       - name: Cache HF models
         uses: actions/cache@v4
         with:
           path: ${{ env.HF_HOME }}/hub
           key: hf-cache-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}
+
+      - name: Cache Torch Hub
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.cache/torch/hub
+          key: torch-hub-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}
 
       - name: Run tests
         run: python -m pytest -q
