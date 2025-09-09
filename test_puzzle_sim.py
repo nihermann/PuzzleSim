@@ -57,7 +57,7 @@ class TestPuzzleSim:
         priors = torch.rand(8, 3, 64, 64).to(device)
         test = priors[0]
 
-        puzzle = PuzzleSim(priors, net_type=net_type)
+        puzzle = PuzzleSim(priors, net_type=net_type, verbose=True)
 
         sims = puzzle(test, layers=(1, 2, 3))
 
@@ -69,7 +69,7 @@ class TestPuzzleSim:
         priors = torch.rand(8, 3, 64, 64).to(device)
         test = priors[0]
 
-        puzzle = PuzzleSim(priors, net_type=net_type)
+        puzzle = PuzzleSim(priors, net_type=net_type, verbose=True)
 
         sims = puzzle(test, layers=(1, 2, 3))
 
@@ -83,7 +83,7 @@ class TestPuzzleSim:
         priors = torch.rand(8, 3, 64, 64).to(device)
         test = priors[0]
 
-        puzzle = PuzzleSim(priors, net_type=net_type)
+        puzzle = PuzzleSim(priors, net_type=net_type, verbose=True)
 
         sims1 = puzzle(test, layers=(1, 2, 3))
         sims2 = puzzle(test, layers=(1, 2, 3))
@@ -91,7 +91,7 @@ class TestPuzzleSim:
         assert torch.allclose(sims1, sims2)
 
 
-@pytest.mark.skipif(bool(os.environ.get("CI")) or not os.path.exists("puzzle_sim/dino_models/"), reason="Relies on local models so can't be run on CI")
+@pytest.mark.skipif(bool(os.environ.get("CI")) or not os.path.exists("src/puzzle_sim/dino_models/"), reason="Relies on local models so can't be run on CI")
 @pytest.mark.parametrize("dino_type", get_args(Dinov3Type))
 def test_correct_state_dict_loaded(dino_type: Dinov3Type):
     refs = torch.rand(8, 3, 64, 64).to(device)
@@ -101,11 +101,11 @@ def test_correct_state_dict_loaded(dino_type: Dinov3Type):
     torch.hub._validate_not_a_forked_repo = lambda a, b, c: True
 
     model = torch.hub.load(repo_or_dir="facebookresearch/dinov3", model=f"dinov3_{dino_type}",
-        weights=f'puzzle_sim/dino_models/dinov3_{dino_type}_pretrain_lvd1689m{"-8aa4cbdd" if dino_type == "vitl16" else ""}.pth', ).to(
+        weights=f'src/puzzle_sim/dino_models/dinov3_{dino_type}_pretrain_lvd1689m{"-8aa4cbdd" if dino_type == "vitl16" else ""}.pth', ).to(
         device)
     model.eval()
 
-    puzzle = PuzzleSim(refs, net_type=dino_type)
+    puzzle = PuzzleSim(refs, net_type=dino_type, verbose=True)
 
     tsd = model.state_dict()
     psd = puzzle.feature_extractor.model.state_dict()

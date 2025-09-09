@@ -4,3 +4,4 @@ __pycache__
 .DS_Store
 .mypy_cache/
 dino_models
+*.egg-info/

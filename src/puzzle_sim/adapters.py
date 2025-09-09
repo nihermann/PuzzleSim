@@ -66,11 +66,13 @@ def get_feature_extractor(net_type: Union[FeatureExtractor, NetType], **kwargs: 
         return net_type
 
     if net_type in get_args(VGGAlexSqueezeType):
-        net = VGGAlexSqueezeAdapter(net_type=net_type, **kwargs)
+        resize = kwargs.get('resize', None)
+        net = VGGAlexSqueezeAdapter(net_type=net_type, resize=resize)
         net.eval()
         return net
     elif net_type in get_args(Dinov3Type):
-        net = DinoV3Adapter(dino_type=net_type)
+        verbose = kwargs.get('verbose', False)
+        net = DinoV3Adapter(dino_type=net_type, verbose=verbose)
         net.eval()
         return net
     else:
@@ -115,7 +117,7 @@ class VGGAlexSqueezeAdapter(nn.Module, FeatureExtractor):
 
 
 class DinoV3Adapter(nn.Module, FeatureExtractor):
-    def __init__(self, dino_type: Dinov3Type) -> None:
+    def __init__(self, dino_type: Dinov3Type, verbose: bool = False) -> None:
         super().__init__()
 
         # using torch.hub causes rate limit issues in some environments, which can be fixed by this workaround
@@ -128,6 +130,7 @@ class DinoV3Adapter(nn.Module, FeatureExtractor):
             repo_or_dir="facebookresearch/dinov3",
             model=f"dinov3_{dino_type}",
             pretrained=False,
+            verbose=verbose
         )
         # pull weights from huggingface model zoo
         self.hugging_face_model = AutoModel.from_pretrained(
@@ -141,7 +144,7 @@ class DinoV3Adapter(nn.Module, FeatureExtractor):
             target_state_dict = map_vit(self.hugging_face_model, self.model, is_plus='plus' in dino_type)
         else:
             raise ValueError(f"Unknown architecture; net_type must be one of {get_args(Dinov3Type)}.")
-        transfer_data(self.model, target_state_dict, verbose=True)
+        transfer_data(self.model, target_state_dict, verbose=verbose)
 
         self.transform = transforms.Normalize(
             mean=(0.485, 0.456, 0.406),
