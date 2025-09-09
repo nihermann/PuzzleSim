@@ -1,3 +1,5 @@
+from cupyx.cutensor import reduction
+
 # <img src="https://www.svgrepo.com/show/510149/puzzle-piece.svg" width="22"/> Puzzle Similarity
 
 -----
@@ -26,10 +28,37 @@ This repository contains the implementation of the cross-reference metric Puzzle
 
 
 ### Requirements
+To use the metric please install it locally as a package. The package requires Python 3.8 or higher. If you wish to use dinov3 backbones you must have Python 3.10 or higher and `transformers>=4.56`:
 ```shell
-pip install -r requirements.txt
+pip install -e .
 ```
-### Usage and Demo
+
+
+### Usage
+You can use the metric in your own code as follows:
+```python
+from puzzlesim import PuzzleSim
+
+priors = ...  # load priors from file with shape (N, C, H, W) in [0, 1]
+test_image = ...  # load test image (C, H, W) or (1, C, H, W) in [0, 1]
+puzzle = PuzzleSim(reference=priors, net_type='squeeze')
+
+similarity_map = puzzle(test_image)  # (H, W) similarity map in [0, 1]
+```
+To use dinov3 backbones you must be logged in to HuggingFace (`hf auth login`), requested access to the models on HuggingFace and review the necessary requirements above. You can request access to the models [here](https://huggingface.co/collections/facebook/dinov3-68924841bd6b561778e31009).
+In code, you have to adapt the `puzzle()` call as default arguments assume the configuration from the paper. We have not tested optimal weights for dinov3 backbones yet, so we recommend to use a simple average over all layers (which has shown similar performance to the configurations in the paper):
+```python
+from puzzlesim import PuzzleSim
+
+priors = ...  # load priors from file with shape (N, C, H, W) in [0, 1]
+test_image = ...  # load test image (C, H, W) or (1, C, H, W) in [0, 1]
+puzzle = PuzzleSim(reference=priors, net_type='convnext_tiny')
+
+similarity_map = puzzle(test_image, layers=range(5), weights=None, reduction='mean')  # (H, W) similarity map in [0, 1]
+```
+> If your GPU runs out of memory, try reducing the `stride` parameter in the forward call, this will reduce memory consumption. On the other hand, with small image dimensions the naive implementation might be faster although requiring much more memory (set `mem_save=False`).
+
+### Demo
 Please find the demo in `demo.ipynb` to see how to run the metric on some example sets. In order to run the demo, you need to pull the data from another repository. Do this by either cloning the repository using
 ```shell
 git clone https://github.com/nihermann/PuzzleSim.git --recursive
@@ -37,6 +66,31 @@ git clone https://github.com/nihermann/PuzzleSim.git --recursive
 or if you already cloned the repository without the data submodule, you can download the submodule using
 ```shell
 git submodule update --init --recursive
+```
+
+### Add Your Own Backbones
+You can extend PuzzleSim with your own backbone models. To get started, inherit from `adapters.FeatureExtractor` and implement the `compute_features method`.
+
+There are two ways to use your backbone:
+1. Directly in the constructor:  
+```python
+PuzzleSim(..., net_type=YourBackbone())
+```
+2. Via the factory function: Register your backbone in `adapters.get_feature_extractor` and add the corresponding string to `adapters.net_type`, so you can refer to it by that string: 
+```python
+PuzzleSim(..., 'your_backbone')
+```
+
+#### 💡 Contributing
+If you’d like to share your backbone with the community, feel free to open a pull request. Please make sure that:
+- Your backbone is publicly available (e.g., on HuggingFace or PyTorch Hub)
+- you’ve registered it in the factory function,
+- extended `adapters.net_type` (so the tests pick it up automatically),
+- and all tests pass (run `pytest` in the project root).
+
+For development, we recommend installing the package in editable mode with dev requirements:
+```shell
+pip install -e .[dev]
 ```
 
 ### Citation
