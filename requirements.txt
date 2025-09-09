@@ -5,5 +5,5 @@ pillow
 torchmetrics
 numpy
 huggingface_hub[cli]
-transformers>=4.56
+transformers
 accelerate
