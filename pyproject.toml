@@ -16,8 +16,7 @@ maintainers = [
 description = "Implementation of PuzzleSim, a cross-refence image similarity metric designed for artefact detection in novel view synthesis methods."
 readme = "README.md"
 requires-python = ">=3.8"
-license = "MIT"
-license-files = ["LICENSE.md"]
+license = { file = "LICENSE.md" }
 keywords = ["puzzle similarity", "similarity", "no reference", "cross reference", "image metric"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
