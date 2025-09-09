@@ -69,7 +69,7 @@ git submodule update --init --recursive
 ```
 
 ### Add Your Own Backbones
-You can extend PuzzleSim with your own backbone models. To get started, inherit from `adapters.FeatureExtractor` and implement the `compute_features method`.
+You can extend PuzzleSim with your own backbone models. To get started, inherit from `adapters.FeatureExtractor` and implement the `compute_features` method.
 
 There are two ways to use your backbone:
 1. Directly in the constructor:  
@@ -83,10 +83,10 @@ PuzzleSim(..., 'your_backbone')
 
 #### 💡 Contributing
 If you’d like to share your backbone with the community, feel free to open a pull request. Please make sure that:
-- Your backbone is publicly available (e.g., on HuggingFace or PyTorch Hub)
-- you’ve registered it in the factory function,
-- extended `adapters.net_type` (so the tests pick it up automatically),
-- and all tests pass (run `pytest` in the project root).
+- [ ] Your backbone is publicly available (e.g., on HuggingFace or PyTorch Hub)
+- [ ] you’ve registered it in the factory function `adapters.get_feature_extractor`,
+- [ ] extended `adapters.net_type` (so the tests pick it up automatically),
+- [ ] and all tests pass (run `pytest` in the project root).
 
 For development, we recommend installing the package in editable mode with dev requirements:
 ```shell
