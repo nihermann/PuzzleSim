@@ -8,7 +8,7 @@ from puzzle_sim.adapters import FeatureExtractor, get_feature_extractor, NetType
 from puzzle_sim.helpers import upsample, resize_tensor
 
 
-def find_best_matching_piece(refs: Tensor, img: Tensor, stride: Optional[int] = 4, mem_save: bool = True) -> Tensor:
+def find_best_matching_piece(refs: Tensor, img: Tensor, *, stride: Optional[int] = 4, mem_save: bool = True) -> Tensor:
     """
     Find the best matching piece in refs for each spatial location in img.
     Args:
@@ -83,14 +83,16 @@ class PuzzleSim(nn.Module):
             resize: tuple to resize the references and inputs to. Recommended if the image sizes change or are too large.
         """
         super().__init__()
-        self.feature_extractor: FeatureExtractor = get_feature_extractor(net_type, resize=resize, verbose=verbose)
+        self.feature_extractor: FeatureExtractor = get_feature_extractor(net_type, verbose=verbose)
         self.to(reference.device)
         self.reference = reference
         self.reference_feats = None
         self.resize = resize
+        if resize is not None:
+            self.reference = resize_tensor(self.reference, resize)
 
 
-    def forward(self, img: Tensor, layers: Sequence[int] = (2, 3, 4), normalize: bool = True, reduction: Literal['mean', 'sum'] = 'sum', weights: Optional[Sequence[float]] = (0.67, 0.2, 0.13), mem_save: bool = True, stride=4) -> Tensor:
+    def forward(self, img: Tensor, *, layers: Sequence[int] = (2, 3, 4), normalize: bool = True, reduction: Literal['mean', 'sum'] = 'sum', weights: Optional[Sequence[float]] = (0.67, 0.2, 0.13), mem_save: bool = True, stride: int = 4) -> Tensor:
         """
         Compute the PuzzleSim metric for an input image.
         Args:
@@ -110,18 +112,19 @@ class PuzzleSim(nn.Module):
 
         H, W = img.shape[-2:]
 
+        if img.ndim == 3:
+            img = img.unsqueeze(dim=0)
+
         if self.resize is not None:
-            img = resize_tensor(img, self.resize)
+            img = resize_tensor(img, self.resize, align_corners=True)
 
         feats = self.feature_extractor.compute_features(img, layers, normalize)
-        if self.reference_feats is None or any(layer not in self.reference_feats for layer in layers):
-            if self.resize is not None:
-                self.reference = resize_tensor(self.reference, self.resize)
+        if self.reference_feats is None or any(layer not in self.reference_feats.keys() for layer in layers):
             self.reference_feats = self.feature_extractor.compute_features(self.reference, layers, normalize)
 
         sims: List[Tensor] = []
         for i, layer in enumerate(layers):
-            sim_map = find_best_matching_piece(self.reference_feats[layer], feats[layer], stride, mem_save)
+            sim_map = find_best_matching_piece(self.reference_feats[layer], feats[layer], stride=stride, mem_save=mem_save)
 
             if weights is not None:
                 sim_map = sim_map * weights[i]
@@ -131,7 +134,7 @@ class PuzzleSim(nn.Module):
         sim_summary = sims[0]
         for sim in sims[1:]:
             sim_summary += sim
-        # sim_summary: Tensor = sum(sims)
+
         if reduction == 'mean':
             return sim_summary / len(sims)
 

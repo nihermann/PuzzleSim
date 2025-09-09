@@ -66,8 +66,7 @@ def get_feature_extractor(net_type: Union[FeatureExtractor, NetType], **kwargs: 
         return net_type
 
     if net_type in get_args(VGGAlexSqueezeType):
-        resize = kwargs.get('resize', None)
-        net = VGGAlexSqueezeAdapter(net_type=net_type, resize=resize)
+        net = VGGAlexSqueezeAdapter(net_type=net_type)
         net.eval()
         return net
     elif net_type in get_args(Dinov3Type):
@@ -83,7 +82,6 @@ class VGGAlexSqueezeAdapter(nn.Module, FeatureExtractor):
     def __init__(
             self,
             net_type: VGGAlexSqueezeType,
-            resize: Optional[Union[int, Tuple[int, int]]] = None,
     ) -> None:
         """Initializes a perceptual loss torch.nn.Module.
 
@@ -92,7 +90,6 @@ class VGGAlexSqueezeAdapter(nn.Module, FeatureExtractor):
             resize: If input should be resized to this size
         """
         super().__init__()
-        self.resize = resize
         self.scaling_layer = ScalingLayer()
 
         self.model = {"vgg": Vgg16, "alex": AlexNet, "squeeze": SqueezeNet}[net_type]()
@@ -106,10 +103,6 @@ class VGGAlexSqueezeAdapter(nn.Module, FeatureExtractor):
 
         # normalize input
         in0_input = self.scaling_layer(img)
-
-        # resize input if needed
-        if self.resize is not None:
-            in0_input = resize_tensor(in0_input, size=self.resize, align_corners=True)
 
         feats = self.model(in0_input, n)
 
