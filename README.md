@@ -1,9 +1,4 @@
-from cupyx.cutensor import reduction
-
 # <img src="https://www.svgrepo.com/show/510149/puzzle-piece.svg" width="22"/> Puzzle Similarity
-
------
-by Nicolai Hermann, Jorge Condor, and Piotr Didyk  
 
 <p align="left">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -12,6 +7,12 @@ by Nicolai Hermann, Jorge Condor, and Piotr Didyk
   <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/database.svg" width=13 height=13> <a target="_blank" href="https://huggingface.co/datasets/nihermann/annotated-3DGS-artifacts">Data</a>
   <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/file-circle-plus.svg" width=13 height=13> <a target="_blank" href="puzzlesim/data/Puzzle_Similarity_Supplemental.pdf">Supplemental</a>
 </p>
+
+by Nicolai Hermann, Jorge Condor, and Piotr Didyk  
+
+-----
+
+
 <p align="left">
   <a target="_blank" href="https://arxiv.org/abs/2411.17489"><img src=https://img.shields.io/badge/arXiv-2411.17489-b31b1b.svg></a>
   <img src="https://github.com/nihermann/PuzzleSim/actions/workflows/tests.yml/badge.svg" alt="test results">
