@@ -5,7 +5,7 @@
   <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/cube.svg" width=13 height=13> <a target="_blank" href="https://nihermann.github.io/puzzlesim/index.html">Project Page</a>
   <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/file-pdf.svg" width=13 height=13> <a target="_blank" href="https://arxiv.org/abs/2411.17489">Paper</a>
   <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/database.svg" width=13 height=13> <a target="_blank" href="https://huggingface.co/datasets/nihermann/annotated-3DGS-artifacts">Data</a>
-  <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/file-circle-plus.svg" width=13 height=13> <a target="_blank" href="puzzlesim/data/Puzzle_Similarity_Supplemental.pdf">Supplemental</a>
+  <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/file-circle-plus.svg" width=13 height=13> <a target="_blank" href="https://nihermann.github.io/puzzlesim/data/Puzzle_Similarity_Supplemental.pdf">Supplemental</a>
 </p>
 
 by Nicolai Hermann, Jorge Condor, and Piotr Didyk  
