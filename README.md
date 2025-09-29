@@ -38,7 +38,7 @@ pip install -e .
 ### Usage
 You can use the metric in your own code as follows:
 ```python
-from puzzlesim import PuzzleSim
+from puzzle_sim import PuzzleSim
 
 priors = ...  # load priors from file with shape (N, C, H, W) in [0, 1]
 test_image = ...  # load test image (C, H, W) or (1, C, H, W) in [0, 1]
@@ -49,7 +49,7 @@ similarity_map = puzzle(test_image)  # (H, W) similarity map in [0, 1]
 To use dinov3 backbones you must be logged in to HuggingFace (`hf auth login`), requested access to the models on HuggingFace and review the necessary requirements above. You can request access to the models [here](https://huggingface.co/collections/facebook/dinov3-68924841bd6b561778e31009).
 In code, you have to adapt the `puzzle()` call as default arguments assume the configuration from the paper. We have not tested optimal weights for dinov3 backbones yet, so we recommend to use a simple average over all layers (which has shown similar performance to the configurations in the paper):
 ```python
-from puzzlesim import PuzzleSim
+from puzzle_sim import PuzzleSim
 
 priors = ...  # load priors from file with shape (N, C, H, W) in [0, 1]
 test_image = ...  # load test image (C, H, W) or (1, C, H, W) in [0, 1]
