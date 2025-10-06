@@ -13,10 +13,10 @@ authors = [
 maintainers = [
     { name = "Nicolai Hermann", email = "hermann.nicolai@gmail.com" }
 ]
-description = "Implementation of PuzzleSim, a cross-refence image similarity metric designed for artefact detection in novel view synthesis methods."
+description = "Implementation of PuzzleSim, a cross-refence image similarity metric designed for artifact detection in novel view synthesis methods."
 readme = "README.md"
 requires-python = ">=3.8"
-license = { file = "LICENSE.md" }
+license-files = ["LICEN[CS]E*"]
 keywords = ["puzzle similarity", "similarity", "no reference", "cross reference", "image metric"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -49,5 +49,5 @@ optional-dependencies = { dev = { file = ["requirements-dev.txt"] } }
 # ---- Versioning via Git tags ----
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
-local_scheme = "node-and-date"
+local_scheme = "no-local-version"
 fallback_version = "0.0.0"
