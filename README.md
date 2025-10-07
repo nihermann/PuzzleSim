@@ -16,6 +16,8 @@ by Nicolai Hermann, Jorge Condor, and Piotr Didyk
 <p align="left">
   <a target="_blank" href="https://arxiv.org/abs/2411.17489"><img src=https://img.shields.io/badge/arXiv-2411.17489-b31b1b.svg></a>
   <img src="https://github.com/nihermann/PuzzleSim/actions/workflows/tests.yml/badge.svg" alt="test results">
+  <a target="_blank" href="https://pypi.org/project/puzzle_sim/"><img src="https://img.shields.io/pypi/v/puzzle_sim" alt="PyPI version"></a>
+  <a target="_blank" href="https://pypi.org/project/puzzle_sim/"><img src="https://img.shields.io/pypi/pyversions/puzzle_sim" alt="PyPI version"></a>
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
 </p>
 
@@ -29,7 +31,12 @@ This repository contains the implementation of the cross-reference metric Puzzle
 
 
 ### Requirements
-To use the metric please install it locally as a package. The package requires Python 3.8 or higher. If you wish to use dinov3 backbones you must have Python 3.10 or higher and `transformers>=4.56`:
+If you simply want to use the metric use:
+```shell
+pip install puzzle_sim
+```
+
+If you want to extend it please install it locally as a package. The package requires Python 3.8 or higher. If you wish to use dinov3 backbones you must have Python 3.10 or higher and `transformers>=4.56`:
 ```shell
 pip install -e .
 ```
