@@ -7,3 +7,4 @@ numpy
 huggingface_hub[cli]
 transformers
 accelerate
+termcolor
