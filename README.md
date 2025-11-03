@@ -104,10 +104,12 @@ pip install -e .[dev]
 ### Citation
 If you find this work useful, please consider citing:
 ```bibtex
-@inproceedings{hermann2025puzzlesim,
-      title={Puzzle Similarity: A Perceptually-Guided Cross-Reference Metric for Artifact Detection in 3D Scene Reconstructions},
-      author={Nicolai Hermann and Jorge Condor and Piotr Didyk},
-      booktitle={ICCV},
-      year={2025},
+@InProceedings{Hermann_puzzlesim_iccv25,
+    author    = {Hermann, Nicolai and Condor, Jorge and Didyk, Piotr},
+    title     = {Puzzle Similarity: A Perceptually-guided Cross-Reference Metric for Artifact Detection in 3D Scene Reconstructions},
+    booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+    month     = {October},
+    year      = {2025},
+    pages     = {28881-28891}
 }
 ```
