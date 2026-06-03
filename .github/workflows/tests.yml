@@ -1,0 +1,60 @@
+name: Cross Platform Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }} @ py${{ matrix.python-version }})
+    environment: HuggingFace
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    env:
+      HF_TOKEN: ${{ secrets.HUGGINGFACETOKEN }}
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface
+      HF_HUB_ENABLE_HF_TRANSFER: 1
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+          cache-dependency-path: |
+            **/requirements.txt
+            **/requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .[dev]
+
+      - name: Cache HF models
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.HF_HOME }}/hub
+          key: hf-cache-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}
+
+      - name: Cache Torch Hub
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.cache/torch/hub
+          key: torch-hub-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}
+
+      - name: Run tests
+        run: python -m pytest -q

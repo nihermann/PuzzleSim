@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools", "wheel", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "puzzle_sim"
+dynamic = ["version", "dependencies", "optional-dependencies"]
+authors = [
+    { name = "Nicolai Hermann", email = "hermann.nicolai@gmail.com" },
+    { name = "Jorge Condor", email = "jorge.condor@usi.ch" },
+    { name = "Piotr Didyk", email = "piotr.didyk@usi.ch" },
+]
+maintainers = [
+    { name = "Nicolai Hermann", email = "hermann.nicolai@gmail.com" }
+]
+description = "Implementation of PuzzleSim, a cross-refence image similarity metric designed for artifact detection in novel view synthesis methods."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE.md" }
+keywords = ["puzzle similarity", "similarity", "no reference", "cross reference", "image metric"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://nihermann.github.io/puzzlesim/index.html"
+Repository = "https://github.com/nihermann/PuzzleSim.git"
+Issues = "https://github.com/nihermann/PuzzleSim/issues"
+
+# ---- Setuptools (src/ layout) ----
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["puzzle_sim*"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+optional-dependencies = { dev = { file = ["requirements-dev.txt"] } }
+
+# ---- Versioning via Git tags ----
+[tool.setuptools_scm]
+version_scheme = "no-guess-dev"
+local_scheme = "no-local-version"
+fallback_version = "0.0.0"

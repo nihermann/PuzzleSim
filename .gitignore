@@ -13,4 +13,4 @@ puzzle_sim_cuda/*.log
 .pytest_cache/
 
 puzzle_sim\lpips_models\alex.pth
-puzzle_sim\lpips_models\alex.pth
+puzzle_sim\lpips_models\vgg.pth
