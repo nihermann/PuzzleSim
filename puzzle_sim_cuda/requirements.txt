@@ -1,0 +1,17 @@
+# PuzzleSim CUDA Requirements
+
+# Core dependencies
+torch>=1.13.0
+torchvision>=0.14.0
+numpy>=1.21.0
+
+# Build dependencies
+pybind11>=2.10.0
+
+# Optional dependencies for development and testing
+matplotlib>=3.5.0  # For plotting and visualization
+pillow>=9.0.0      # For image loading in tests
+
+# Original PuzzleSim dependencies
+torchmetrics>=1.0.0
+
