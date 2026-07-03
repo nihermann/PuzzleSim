@@ -281,11 +281,6 @@ torch::Tensor bilinear_upsample(
     return out;
 }
 
-// Registers the FusedSqueezeNet class. Implementation lives in
-// fused_inference.cpp; forward-declared here so we don't have to drag that
-// translation unit's includes into this header-only PYBIND11_MODULE block.
-void register_fused_inference(pybind11::module& m);
-
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.doc() = "CUDA-accelerated kernels for PuzzleSim";
 
@@ -316,6 +311,4 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
           py::arg("input"),
           py::arg("output_size"),
           py::arg("align_corners") = true);
-
-    register_fused_inference(m);
 }

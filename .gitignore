@@ -1,15 +1,15 @@
 .idea
 .vscode
 __pycache__
+*.egg-info/
+*.pyc
+*.pyd
+*.so
+*.whl
+build/
+dist/
 .DS_Store
 
-# Compiled CUDA extension and build artifacts
-puzzle_sim_cuda/build/
-puzzle_sim_cuda/dist/
-puzzle_sim_cuda/*.egg-info/
-puzzle_sim_cuda/*.pyd
-puzzle_sim_cuda/*.so
-puzzle_sim_cuda/*.log
 .pytest_cache/
 
 puzzle_sim\lpips_models\alex.pth

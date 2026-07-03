@@ -30,16 +30,61 @@ This repository contains the implementation of the cross-reference metric Puzzle
 - (29-11-2024) Official code release
 
 
-### Requirements
-If you simply want to use the metric use:
+### Installation
+
+PuzzleSim has one public entry point:
+
+```python
+from puzzle_sim import PuzzleSim
+```
+
+There is no separate CUDA package.
+
+#### PyTorch implementation
+
+Install from PyPI:
+
 ```shell
 pip install puzzle_sim
 ```
 
-If you want to extend it please install it locally as a package. The package requires Python 3.8 or higher. If you wish to use dinov3 backbones you must have Python 3.10 or higher and `transformers>=4.56`:
-```shell
-pip install -e .
+This works on CPU-only machines and on machines with PyTorch CUDA installed. If your tensors are on CUDA, PuzzleSim uses PyTorch CUDA operations automatically.
+
+```python
+from puzzle_sim import PuzzleSim
+
+priors = priors.cuda()
+test_image = test_image.cuda()
+puzzle = PuzzleSim(reference=priors, net_type="squeeze")
+similarity_map = puzzle(test_image)
 ```
+
+#### Faster CUDA implementation
+
+For the faster CUDA implementation, build PuzzleSim from source. You need:
+- a CUDA GPU,
+- a CUDA-enabled PyTorch installation,
+- the CUDA toolkit with `nvcc`,
+- a compatible C++ compiler.
+
+Install the CUDA build of PyTorch first, using the command for your platform from the
+[PyTorch installation guide](https://pytorch.org/get-started/locally/). Then build PuzzleSim:
+
+```shell
+git clone https://github.com/nihermann/PuzzleSim.git
+cd PuzzleSim
+pip install --upgrade pip setuptools wheel setuptools-scm
+PUZZLE_SIM_BUILD_CUDA=1 pip install --no-build-isolation -v .
+```
+
+`--no-build-isolation` is required because PyTorch's extension build uses the already-installed `torch` package. After installation, verify the compiled extension is available:
+
+```python
+import puzzle_sim
+print(puzzle_sim.get_cuda_version_info())
+```
+
+The PyPI wheel does not currently include prebuilt CUDA kernels. If you do not need the faster compiled kernels, use `pip install puzzle_sim`.
 
 
 ### Usage
@@ -64,7 +109,7 @@ puzzle = PuzzleSim(reference=priors, net_type='convnext_tiny')
 
 similarity_map = puzzle(test_image, layers=range(5), weights=None, reduction='mean')  # (H, W) similarity map in [0, 1]
 ```
-> If your GPU runs out of memory, try reducing the `stride` parameter in the forward call, this will reduce memory consumption. On the other hand, with small image dimensions the naive implementation might be faster although requiring much more memory (set `mem_save=False`).
+> If your GPU runs out of memory on the PyTorch fallback path, try reducing the `stride` parameter in the forward call, this will reduce memory consumption. On the integrated CUDA path, the packed matmul backend chunks the score matrix automatically.
 
 ### Demo
 Please find the demo in `demo.ipynb` to see how to run the metric on some example sets. In order to run the demo, you need to pull the data from another repository. Do this by either cloning the repository using
