@@ -1,14 +1,33 @@
-from typing import List, Optional, Tuple, Literal, Sequence, Union
+from typing import Dict, List, Optional, Tuple, Literal, Sequence, Union
 
 import torch
 from torch import Tensor, nn
 import torch.nn.functional as F
 
+from . import cuda_backend
 from puzzle_sim.adapters import FeatureExtractor, get_feature_extractor, NetType, Dinov3Type, VGGAlexSqueezeType
 from puzzle_sim.helpers import upsample, resize_tensor
 
 
-def find_best_matching_piece(refs: Tensor, img: Tensor, *, stride: Optional[int] = 4, mem_save: bool = True) -> Tensor:
+def cuda_extension_available() -> bool:
+    """Return True when the optional compiled CUDA extension is importable."""
+    return cuda_backend.is_available()
+
+
+def get_cuda_version_info() -> dict[str, object]:
+    """Return diagnostic information about CUDA backend availability."""
+    return cuda_backend.get_version_info()
+
+
+def find_best_matching_piece(
+    refs: Tensor,
+    img: Tensor,
+    *,
+    stride: Optional[int] = 4,
+    mem_save: bool = True,
+    backend: cuda_backend.Backend = "auto",
+    cuda_precision: cuda_backend.Precision = "auto",
+) -> Tensor:
     """
     Find the best matching piece in refs for each spatial location in img.
     Args:
@@ -16,12 +35,22 @@ def find_best_matching_piece(refs: Tensor, img: Tensor, *, stride: Optional[int]
         img: Tensor of shape (C, H, W) or (1, C, H, W) representing the input image
         stride: int, controls how many slices are in one block. If memory is a concern decrease this number. Depending on the hardware and application different values can be optimal.
         mem_save: bool, should generally be set to True. In rare cases, when the image resolution and the number of reference images is small the naive implementation can be faster.
+        backend: choose between 'auto', 'torch', and 'cuda'. 'auto' uses the packed CUDA path when possible and falls back to PyTorch otherwise.
+        cuda_precision: precision for the optional tensor-core CUDA kernel. 'auto' preserves exact FP32 numerics unless PUZZLE_SIM_CUDA_PRECISION is set.
 
     Returns:
         Tensor: the similarity map of the input image to the reference distribution of shape (H, W).
     """
+    cuda_backend.validate_backend(backend)
     if img.ndim == 3:
         img = img.unsqueeze(dim=0)
+
+    if backend != "torch" and cuda_backend.should_use_packed_cuda(refs, img):
+        return cuda_backend.find_best_matching_piece(refs, img, precision=cuda_precision)
+    if backend == "cuda":
+        raise RuntimeError(
+            "The CUDA backend requires CUDA float32 tensors and non-gradient reference features."
+        )
 
     refs = F.normalize(refs, p=2, dim=1)
     img = F.normalize(img, p=2, dim=1).squeeze()
@@ -72,8 +101,17 @@ def find_best_matching_piece(refs: Tensor, img: Tensor, *, stride: Optional[int]
 
     return sim_map
 
+
 class PuzzleSim(nn.Module):
-    def __init__(self, reference: Tensor, net_type: NetType = "squeeze", resize: Optional[Tuple[int, int]] = None, verbose: bool = False) -> None:
+    def __init__(
+        self,
+        reference: Tensor,
+        net_type: NetType = "squeeze",
+        resize: Optional[Tuple[int, int]] = None,
+        verbose: bool = False,
+        backend: cuda_backend.Backend = "auto",
+        cuda_precision: cuda_backend.Precision = "auto",
+    ) -> None:
         """
         Instantiates the PuzzleSim metric on a given reference distribution.
         Find the paper at https://arxiv.org/abs/2411.17489
@@ -81,16 +119,53 @@ class PuzzleSim(nn.Module):
             reference: tensor of shape (N, C, H, W) representing the reference distribution
             net_type: which base network to use, choose between ['alex','vgg','squeeze']. Defaults to 'squeeze' as detailed in our paper.
             resize: tuple to resize the references and inputs to. Recommended if the image sizes change or are too large.
+            backend: 'auto' uses the packed CUDA backend when possible and PyTorch otherwise. Use 'torch' to force the reference implementation.
+            cuda_precision: precision for the optional tensor-core CUDA backend. 'auto' keeps exact FP32 behavior unless PUZZLE_SIM_CUDA_PRECISION is set.
         """
         super().__init__()
+        cuda_backend.validate_backend(backend)
         self.feature_extractor: FeatureExtractor = get_feature_extractor(net_type, verbose=verbose)
         self.to(reference.device)
         self.reference = reference
-        self.reference_feats = None
+        self.reference_feats: Optional[Dict[int, Tensor]] = None
+        self._reference_feats_normalize: Optional[bool] = None
+        self._cuda_refs = cuda_backend.PackedReferenceCache(cuda_precision)
         self.resize = resize
+        self.backend = backend
         if resize is not None:
             self.reference = resize_tensor(self.reference, resize)
 
+    def _ensure_reference_features(self, layers: Sequence[int], normalize: bool) -> None:
+        if self.reference_feats is None or self._reference_feats_normalize != normalize:
+            self.reference_feats = {}
+            self._reference_feats_normalize = normalize
+            self._cuda_refs.clear()
+
+        missing_layers = [layer for layer in layers if layer not in self.reference_feats]
+        if missing_layers:
+            self.reference_feats.update(self.feature_extractor.compute_features(self.reference, missing_layers, normalize))
+
+    def _find_best_matching_piece(
+        self,
+        layer: int,
+        refs: Tensor,
+        img: Tensor,
+        *,
+        stride: int,
+        mem_save: bool,
+    ) -> Tensor:
+        if self.backend != "torch" and cuda_backend.should_use_packed_cuda(refs, img):
+            return self._cuda_refs.similarity(layer, refs, img)
+        if self.backend == "cuda":
+            raise RuntimeError(
+                "The CUDA backend requires CUDA float32 tensors and non-gradient reference features."
+            )
+        return find_best_matching_piece(refs, img, stride=stride, mem_save=mem_save, backend="torch")
+
+    def _upsample(self, sim_map: Tensor, out_hw: Tuple[int, int]) -> Tensor:
+        if self.backend != "torch" and sim_map.is_cuda and sim_map.dim() == 2:
+            return cuda_backend.bilinear_upsample(sim_map, out_hw, align_corners=True)
+        return upsample(sim_map, out_hw=out_hw, align_corners=True).squeeze()
 
     def forward(self, img: Tensor, *, layers: Sequence[int] = (2, 3, 4), normalize: bool = True, reduction: Literal['mean', 'sum'] = 'sum', weights: Optional[Sequence[float]] = (0.67, 0.2, 0.13), mem_save: bool = True, stride: int = 4) -> Tensor:
         """
@@ -119,17 +194,17 @@ class PuzzleSim(nn.Module):
             img = resize_tensor(img, self.resize, align_corners=True)
 
         feats = self.feature_extractor.compute_features(img, layers, normalize)
-        if self.reference_feats is None or any(layer not in self.reference_feats.keys() for layer in layers):
-            self.reference_feats = self.feature_extractor.compute_features(self.reference, layers, normalize)
+        self._ensure_reference_features(layers, normalize)
+        assert self.reference_feats is not None
 
         sims: List[Tensor] = []
         for i, layer in enumerate(layers):
-            sim_map = find_best_matching_piece(self.reference_feats[layer], feats[layer], stride=stride, mem_save=mem_save)
+            sim_map = self._find_best_matching_piece(layer, self.reference_feats[layer], feats[layer], stride=stride, mem_save=mem_save)
 
             if weights is not None:
                 sim_map = sim_map * weights[i]
 
-            sims.append(upsample(sim_map, out_hw=(H, W), align_corners=True).squeeze())
+            sims.append(self._upsample(sim_map, out_hw=(H, W)))
 
         sim_summary = sims[0]
         for sim in sims[1:]:
@@ -139,9 +214,4 @@ class PuzzleSim(nn.Module):
             return sim_summary / len(sims)
 
         return sim_summary
-
-
-
-
-
 
