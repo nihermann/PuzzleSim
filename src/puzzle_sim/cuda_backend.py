@@ -260,9 +260,9 @@ def find_best_matching_piece(
     return sim_max(img_norm, refs_packed, precision=resolved_precision)
 
 
-def get_version_info() -> dict[str, object]:
+def get_version_info() -> Dict[str, object]:
     """Return runtime information for diagnostics."""
-    info: dict[str, object] = {
+    info: Dict[str, object] = {
         "cuda_extension_available": CUDA_EXT_AVAILABLE,
         "torch_version": torch.__version__,
         "cuda_available": torch.cuda.is_available(),

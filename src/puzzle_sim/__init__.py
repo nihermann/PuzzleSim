@@ -14,7 +14,7 @@ def cuda_extension_available() -> bool:
     return cuda_backend.is_available()
 
 
-def get_cuda_version_info() -> dict[str, object]:
+def get_cuda_version_info() -> Dict[str, object]:
     """Return diagnostic information about CUDA backend availability."""
     return cuda_backend.get_version_info()
 
