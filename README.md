@@ -24,6 +24,7 @@ by Nicolai Hermann, Jorge Condor, and Piotr Didyk
 This repository contains the implementation of the cross-reference metric PuzzleSim and a dedicated demo for the paper "Puzzle Similarity: A Perceptually-Guided Cross-Reference Metric for Artifact Detection in 3D Scene Reconstructions".
 
 ### News
+- (03-07-2026) Release CUDA implementation for a x2-4 speedup
 - (04-09-2025) Dinov3 🦖 backbones (ConvNeXt & Vits) are now supported
 - (31-08-2025) Major refactoring allowing to easily add custom backbones and automated cross-platform testing
 - (25-06-2025) PuzzleSim was officially accepted to ICCV 2025 in Hawaii 🌸!
